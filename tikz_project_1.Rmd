@@ -1,0 +1,177 @@
+---
+title: "Project 1: Parabola"
+author: "Jennifer Brown"
+date: "2023-12-24"
+output: html_document
+header-includes: 
+  # - \usepackage{graphicx}
+  # - \usepackage{tikz}
+  # - \usepackage{parskip}
+  - \usepackage{verbatim}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(magick)
+library(pdftools)
+library(mathjaxr)
+```
+
+*An important preliminary:* in your own Overleaf LaTeX document (where you'll be copying and modifying the code chunks in these projects), remember to put the command $\texttt{\usepackage{tikz}}$ in your preamble -- after the $\texttt{\documentclass{article}}$ and before the $\texttt{\begin{document}}$. 
+
+For our first project, we'll be using TikZ to make a nice version of this hand-drawn sketch of a parabola:
+
+![ ](images_for_tikz_projects/drawing_parabola_1.png)
+
+## The axes: drawing straight lines and arrows
+
+Let's start by making the $x$- and $y$-axes. 
+
+```{r, engine='tikz'}
+\begin{tikzpicture}
+    \draw (-3,0) -- (3,0);
+    \draw (0,-3) -- (0,3);
+\end{tikzpicture}
+```
+
+(The format in these tutorials will be to first display, verbatim, the code used to generate a picture, and then to display the resulting picture. You should copy and paste the code blocks into your own document to see how they work!)
+
+A few things to notice about that first block of code above: 
+
+* Assuming you're using Overleaf (or a LaTeX IDE such as TeXstudio),  TikZ pictures need to be made inside the TikZ environment: $\texttt{\begin{tikzpicture}}$ $\ldots$ $\texttt{\end{tikzpicture}}$
+* If you happen to be using TikZ inside Rstudio, you can use the TikZ engine inside your code chunk where you have the $\texttt{\begin{tikzpicture}}$ $\ldots$ $\texttt{\end{tikzpicture}}$ environment. To do this, put the knitr option  $\texttt{engine='tikz'}$ inside your chunk header. 
+* Commands in TikZ, such as the $\texttt{\draw}$ command, are like commands in LaTeX -- they begin with backslashes.
+* The two dashes, $\texttt{--}$, mean that we are using the straight line path operation with the $\texttt{\draw}$ command. (There are other path operations too; we'll see some later.) 
+* We specify the starting and ending points for each straight line by listing the points as ordered pairs. 
+* At the end of every line of TikZ commands, we have to put a semicolon.
+
+Note that the picture above isn't centered on the page; it's put just at the place where a new paragraph would be put. If you want your picture to be centered, you can just put it inside a displayed math environment. I'm not going to do this in these drawings.
+
+Assuming you're working in Overleaf, the $\texttt{tikzpicture}$ environment works inside or outside of math mode. 
+
+**An important aside:** Play around with these drawings and this code! Copy and paste the code blocks into your own LaTeX document, and then try messing with it. Change the colors, make a solid line dashed, scale your picture up or down, ...  If you don't know how to do something, check out the PGF/TikZ manual at [tikz.dev](<https://tikz.dev>), or see if someone has posted a similar question on [Stack Overflow](<https://stackoverflow.com>). The very best way to learn TikZ (and many other things besides) is to take a basic model and mess around with it to see how it works. If you're worried that you might mess up an important document that you might have to turn in for a class, make yourself a "scratch" document and use it for experimentation. 
+
+Next, let's add some arrows to our axes. TikZ has lots of fancy arrows, but to do basic ones, just put $\texttt{[->]}$ (or $\texttt{[<-]}$, or $\texttt{[<->]}$) after the basic $\texttt{\draw}$ command. Let's say we just want arrows pointing up from the positive $y$-axis and right from the positive $x$-axis.   
+
+```{r, engine='tikz'}
+\begin{tikzpicture}
+    \draw[->] (-3,0) -- (3,0);
+    \draw[->] (0,-3) -- (0,3);
+\end{tikzpicture}
+```
+
+TikZ is not very picky about spaces; the code $\texttt{\draw[->](-3,0)--(3,0);}$ would produce the same result as $\texttt{\draw[->] (-3, 0) -- (3, 0);}$ 
+
+I'll usually use spacing in the example code just to make things easier to read, though.
+
+## The parabola: plotting curves
+
+Next, let's add the parabola $y=x^2$ to our picture. 
+
+```{r, engine='tikz'}
+\begin{tikzpicture}
+    \draw [->] (-3,0) -- (3,0);
+    \draw [->] (0,-3) -- (0,3);
+    \draw [smooth, samples=100, domain=-1.5:1.5] plot(\x, {(\x)^2)});
+\end{tikzpicture}
+```
+
+There are a few new options in the $\texttt{\draw}$ command here; let's look at each of them. 
+
+* In order to draw this parabola, TikZ is plotting a bunch of points (100, in this case) and joining them together. If you set the $\texttt{sample}$ size to be small enough, you'll start to notice the graph getting choppy-looking.
+* The $\texttt{smooth}$ option means that the points get joined together with smooth curves, rather than straight lines. 
+* The $\texttt{domain}$ option lets you set the smallest and largest $x$-value of plotted points. I set them to be $\pm$ 1.6 because that would make the $y$-values come nearly to the top of our axes (since $1.6^2 = 2.56$ and our $y$-axis goes to 3), but this is simply personal preference.
+
+
+Next, the parabola: $\texttt{plot(\x, {(\x)^2)})}$ tells TikZ that the $x$-values, denoted $\texttt{\x}$, should get squared in order to produce the $y$-values. The symbol $\texttt{\x}$ should go inside round parentheses when you specify how $y$-values should get computed, and the entire $y$-value should go inside curly braces. Another example: if, instead of $y=x^2$, we wanted to plot $y = 3x^3-4x$, we would replace $\texttt{plot(\x, {(\x)^2)})}$ with $\texttt{plot(\x, {3*(\x)^3 - 4*(\x)})}$
+
+## An aside about colors 
+
+This next graph isn't really part of the picture we set out to draw in this first project, but it shows the effect of shrinking the $\texttt{sample}$ size and using the default (straight-line) connections between points. It also demonstrates how to plot multiple graphs in the same picture, and how to change colors as an option to the $\texttt{draw}$ command. 
+
+```{r, engine='tikz'}
+\begin{tikzpicture}
+  	\draw [->] (-3,0) -- (3,0);
+  	\draw [->] (0,-3) -- (0,3);
+  	\draw [smooth, samples=100, domain=-1.6:1.6] plot(\x, {(\x)^2)});
+  	\draw [green, smooth, samples=5, domain=-1.6:1.6] plot(\x, {(\x)^2)});
+  	\draw [red, samples=5, domain=-1.6:1.6] plot(\x, {(\x)^2)});
+\end{tikzpicture}
+```
+
+Base LaTeX as used in Overleaf has basic colors, like red and brown, built-in. If you want access to a bunch of additional fancy colors, you can use the $\texttt{xcolor}$ package (together with an option). For example, by putting $\texttt{\usepackage[dvipsnames]{xcolor}}$ in the preamble, you get 68 more named colors, such as "BrickRed" and "RawSienna". **Important:** you need to load the $\texttt{xcolor}$ package (with its option) *before* you load TikZ! For example, to load $\texttt{xcolor}$ with the $\texttt{dvipsnames}$ option, you need to write
+
+$\texttt{\usepackage[dvipsnames]{xcolor}}$
+
+$\texttt{\usepackage{tikz}}$
+
+*in that order*. See Overleaf's page on [Using colors in LaTeX](<https://www.overleaf.com/learn/latex/Using_colors_in_LaTeX>) for details about the $\texttt{xcolor}$ package. For even fancier colors and more control over shading (using varying saturation, for example), you can use the $\texttt{xxcolor}$ package. See the PGF/TikZ Manual's section on [Extended Color Support](<https://tikz.dev/xxcolor>) for details.
+
+## The label: nodes
+
+Getting back to our basic picture of the parabola $y=x^2$: the next thing we'd like to do is to add a label to it. We'll do this by adding a node to our picture. A node, in TikZ, is a specified location where things like labels or shapes can go. For the picture below, I put the text $y=x^2$, in math mode, centered at the point (2.0,1.8) in the plane. (Again, this was just personal preference -- that location looked about right to me. You should play around with the location of the label until it suits you.) 
+
+```{r, engine='tikz'}
+\begin{tikzpicture}
+    \draw [->] (-3,0) -- (3,0);
+    \draw [->] (0,-3) -- (0,3);
+    \draw [smooth, samples=100, domain=-1.6:1.6] plot(\x, {(\x)^2)});
+    \node at (2.0,1.8) {$y=x^2$};
+\end{tikzpicture}
+```
+
+Note that the math mode text in the node needs to be enclosed in dollar signs as usual, and also that the entire text at the node needs to be enclosed in curly braces.
+
+## Comment your code!
+
+Almost done! There is one more thing you should do, and it's not going to show up in your picture, but it is nonetheless very important: *Comment your TikZ code*. This is part of best practice when you're doing any kind of coding. You need to explain what you're doing with each piece of code so that your collaborators, or you six months from now, know what's going on in case they, or you, need to modify or debug something.
+
+Commenting in the $\texttt{tikzpicture}$ environment is done the way it's usually done in LaTeX, with a percent sign. Here is how I might comment our parabola picture:
+
+```{r, engine='tikz'}
+\begin{tikzpicture}
+% this is a picture of the parabola y=x^2
+
+    % the x-axis, with an arrow pointing right
+    \draw [->] (-3,0) -- (3,0);
+    
+    % the y-axis, with an arrow pointing up
+    \draw [->] (0,-3) -- (0,3);
+    
+    % the parabola y=x^2, from -1.6 to 1.6,
+    % using sample size = 100 points
+    % and joining points smoothly
+    \draw [smooth, samples=100, domain=-1.6:1.6] plot(\x, {(\x)^2)});
+    
+    % the label y=x^2
+    \node at (2.0,1.8) {$y=x^2$};
+\end{tikzpicture}
+```
+
+If you've made it this far, congratulations! Now go back, if you haven't already, and play around with the code blocks (copy and paste them into your own Overleaf document) to get an idea of how the commands you've seen in this first project work. 
+
+Then, when you're ready, test your understanding by completing the following exercises. *NOTE:* There is no one "correct" solution for any of these exercises. The idea is to make a TikZ picture that does what the exercise says it should, and you need to be the judge of whether or not your picture "works". The exercises for a particular project will always be doable using the commands and options introduced in that project or previous ones, but there might be other (possibly better) ways to do them too. If you're not satisfied with a picture, it's OK to set it aside for now, and come back to it as you learn more.
+
+
+
+## Exercises for Project 1
+
+1. Make a square with its corners at $(-1,1)$, $(1,1)$, $(1,-1)$, and $(-1,-1)$.
+
+2. Make a yellow diamond with its corners at $(0,1)$, $(1,0)$, $(0,-1)$, and $(-1,-0)$. Center the picture on the page horizontally.
+
+3. Make a picture similar to our final parabola picture, except change the function to $y=-x^3 + 2x - 5$. Adjust the axes as needed. Include a label with the equation of the function. 
+
+4. Make a picture showing the graphs of the functions $y=x^2-2$ and $y=-x^2+1$ on the same set of axes. Color the $y=x^2-2$ graph red and the $y=-x^2+1$ graph blue. Include a label for each graph showing its equation.
+
+\ 
+\ 
+\ 
+\ 
+\ 
+
+
+The content of this site is licensed under the [Creative Commons Attribution 4.0 International License.](<https://creativecommons.org/licenses/by/4.0/>) 
